@@ -141,11 +141,11 @@ def _run_pipeline(file_key: str, content: bytes, patient_code: str) -> dict:
         
         embeddings.append({
             "sequence_id": seq.sequence_id,
-            "length": seq.length,
-            "gc_content": seq.gc_content,
-            "vocabulary_size": emb.vocabulary_size,
+            "length": int(seq.length),
+            "gc_content": float(seq.gc_content),
+            "vocabulary_size": int(emb.vocabulary_size),
             "mutation_distance_from_reference": distance,
-            "divergence_flag": distance > 0.05,
+            "divergence_flag": bool(distance > 0.05),
             "severity": _classify_severity(distance)
         })
 

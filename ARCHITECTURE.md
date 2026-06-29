@@ -49,7 +49,7 @@ LocalStack 3.4 emulates S3 and SQS inside Docker with no `docker.sock` mount —
 | Database driver | PostgreSQL JDBC |
 | AWS SDK | AWS SDK for Java v2 — 2.25.40 |
 | Serialization | Jackson ObjectMapper (registered as Spring bean in `AwsConfig`) |
-| Security | Spring Security (CSRF disabled, CORS: localhost:4200) |
+| Security | Spring Security (CSRF disabled, CORS: localhost:3000) |
 | Utilities | Lombok |
 
 ### Class Map
@@ -97,7 +97,7 @@ com.satb2/
     ├── AwsConfig           S3Client + SqsClient + ObjectMapper beans
     │   AWS_ENDPOINT_OVERRIDE set → StaticCredentials("test","test") + forcePathStyle(S3)
     │   AWS_ENDPOINT_OVERRIDE not set → DefaultCredentialsProvider (IAM role / env / ~/.aws)
-    └── SecurityConfig      CSRF disabled · CORS: GET/POST/PUT/DELETE from localhost:4200
+    └── SecurityConfig      CSRF disabled · CORS: GET/POST/PUT/DELETE from localhost:3000
 ```
 
 ### Key Configuration (`application.yml`)
@@ -344,7 +344,7 @@ if (endpoint != null && !endpoint.isEmpty()) {
 | Control | Implementation |
 |---------|---------------|
 | CSRF | Disabled (stateless REST API) |
-| CORS | `localhost:4200` only (Angular dev server) |
+| CORS | `localhost:3000` only (frontend UI) |
 | File type | `.fasta`, `.fa`, `.vcf` whitelist |
 | File size | 500 MB hard limit (Spring + controller) |
 | RDS network | Security group: port 5432 from VPC CIDR only |

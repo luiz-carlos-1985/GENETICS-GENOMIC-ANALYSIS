@@ -61,6 +61,7 @@ docker-compose up --build
 | `satb2-localstack` | `localstack/localstack:3.4` | 4566 | S3 + SQS emulation |
 | `satb2-init-aws` | `amazon/aws-cli:latest` | — | Creates S3 bucket, folders, SQS queues |
 | `satb2-backend` | built from `./backend` | 8080 | Spring Boot REST API |
+| `satb2-frontend` | built from `./frontend` | 3000 | Static web UI served by nginx |
 | `satb2-worker` | built from `./ai-worker` | — | Python pipeline worker |
 
 ### Startup sequence and timing

@@ -6,6 +6,8 @@ Complete guide for running the entire SATB2 platform on your machine with **zero
 
 ## How It Works Offline
 
+The full platform runs locally with Docker Compose. The current user experience is a static web UI served on port 3000, with the backend API available on port 8080.
+
 Every cloud service is replaced by a local equivalent:
 
 | Production (AWS) | Local Equivalent | Technology |
@@ -40,7 +42,7 @@ The analysis **still completes correctly** using the local cache.
 
 - Docker Desktop installed and running
 - At least 4 GB RAM allocated to Docker
-- Free ports: `8080` (backend), `5432` (postgres), `4566` (localstack)
+- Free ports: `3000` (frontend), `8080` (backend), `5432` (postgres), `4566` (localstack)
 - Disk: ~2 GB for images on first run
 
 ### Start
@@ -56,6 +58,9 @@ docker-compose up --build
 ### Verify
 
 ```bash
+# Frontend UI
+http://localhost:3000
+
 # Backend API
 curl http://localhost:8080/api/genomic/health
 # → {"status":"UP","service":"SATB2 Genomic Analysis API","version":"2.0.0"}
@@ -64,7 +69,7 @@ curl http://localhost:8080/api/genomic/health
 curl http://localhost:4566/_localstack/health
 
 # All containers
-docker-compose ps
+docker compose ps
 ```
 
 ### Test the Full Flow

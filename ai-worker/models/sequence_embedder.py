@@ -50,4 +50,4 @@ def compute_mutation_distance(wild_type: str, mutant: str, k: int = 6) -> float:
     norm = np.linalg.norm(vec_wt) * np.linalg.norm(vec_mut)
 
     cosine_similarity = dot / norm if norm > 0 else 0.0
-    return round(1.0 - cosine_similarity, 6)
+    return float(round(1.0 - cosine_similarity, 6))

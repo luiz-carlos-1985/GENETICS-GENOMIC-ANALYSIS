@@ -23,7 +23,7 @@ This guide explains how to contribute to the platform as a software engineer, bi
 | Area | Skills Needed | Impact |
 |------|--------------|--------|
 | Phase 3: SageMaker gRNA design | Python, PyTorch, AWS SageMaker | High — enables direct therapeutic tool |
-| Phase 4: Angular frontend | TypeScript, Angular 17+ | High — makes platform accessible to biologists |
+| Phase 4: Frontend experience | HTML, CSS, JavaScript, Nginx | High — makes the platform accessible to biologists |
 | ClinVar variant-level lookup | Python, REST APIs | Medium — improves classification accuracy |
 | NCBI API rate limiting | Python | Medium — prevents ClinVar query failures |
 | CI/CD pipeline | GitHub Actions, Docker | Medium — enables automated testing |
@@ -273,20 +273,17 @@ def test_parse_fasta_empty_returns_empty_list():
 - `ai-worker/services/offtarget_scorer.py`
 - `infra/sagemaker_endpoint.tf`
 
-### Phase 4: Angular Frontend
+### Phase 4: Frontend Experience
 
-**Goal:** A web portal where researchers can upload genomic files, view results visually, and export reports.
+**Goal:** A polished web portal where researchers can upload genomic files, inspect results, and review executive summaries.
 
 **Key screens:**
-- Dashboard with analysis history table
-- File upload form with drag-and-drop
-- Analysis detail view with:
-  - Mutation distance chart (bar chart per sequence)
-  - Variant table with ClinVar significance color coding
-  - CRISPRa candidates panel with gRNA library (Phase 3)
-- PDF/CSV export for clinical reports
+- Dashboard with recent analysis history
+- File upload form for FASTA and VCF files
+- Analysis detail panel with result payloads
+- Executive overview for status and operational readiness
 
-**Technology:** Angular 17 + PrimeNG or Angular Material
+**Technology:** Static HTML, CSS, and JavaScript served by Nginx
 
 ---
 

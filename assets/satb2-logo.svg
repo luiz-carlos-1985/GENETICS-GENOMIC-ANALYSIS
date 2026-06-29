@@ -1,0 +1,63 @@
+<svg width="1600" height="520" viewBox="0 0 1600 520" fill="none" xmlns="http://www.w3.org/2000/svg">
+  <defs>
+    <linearGradient id="bgGradient" x1="220" y1="70" x2="1320" y2="430" gradientUnits="userSpaceOnUse">
+      <stop offset="0" stop-color="#071A3A"/>
+      <stop offset="0.5" stop-color="#0F2D5C"/>
+      <stop offset="1" stop-color="#0B4D6A"/>
+    </linearGradient>
+    <linearGradient id="helixGradient" x1="180" y1="120" x2="420" y2="380" gradientUnits="userSpaceOnUse">
+      <stop offset="0" stop-color="#5EE7F2"/>
+      <stop offset="0.5" stop-color="#3C8DFF"/>
+      <stop offset="1" stop-color="#7C4DFF"/>
+    </linearGradient>
+    <linearGradient id="ringGradient" x1="190" y1="90" x2="390" y2="390" gradientUnits="userSpaceOnUse">
+      <stop offset="0" stop-color="#6AF4FF"/>
+      <stop offset="1" stop-color="#7C4DFF"/>
+    </linearGradient>
+    <filter id="shadow" x="0" y="0" width="1600" height="520" filterUnits="userSpaceOnUse" color-interpolation-filters="sRGB">
+      <feFlood flood-opacity="0" result="BackgroundImageFix"/>
+      <feColorMatrix in="SourceAlpha" type="matrix" values="0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 127 0" result="hardAlpha"/>
+      <feOffset dy="16"/>
+      <feGaussianBlur stdDeviation="20"/>
+      <feColorMatrix type="matrix" values="0 0 0 0 0.01 0 0 0 0 0.06 0 0 0 0 0.16 0 0 0 0.28 0"/>
+      <feBlend mode="normal" in2="BackgroundImageFix" result="effect1_dropShadow_0_1"/>
+      <feBlend mode="normal" in="SourceGraphic" in2="effect1_dropShadow_0_1" result="shape"/>
+    </filter>
+  </defs>
+
+  <g filter="url(#shadow)">
+    <rect x="70" y="40" width="1460" height="440" rx="36" fill="url(#bgGradient)"/>
+  </g>
+
+  <circle cx="310" cy="260" r="182" stroke="url(#ringGradient)" stroke-width="4"/>
+  <circle cx="310" cy="260" r="152" stroke="#8DEBFF" stroke-opacity="0.28" stroke-width="2"/>
+
+  <g transform="translate(220 120)">
+    <path d="M120 30C95 55 95 95 120 120C145 145 145 185 120 210" stroke="url(#helixGradient)" stroke-width="14" stroke-linecap="round"/>
+    <path d="M90 30C115 55 115 95 90 120C65 145 65 185 90 210" stroke="#BFEFFF" stroke-opacity="0.95" stroke-width="14" stroke-linecap="round"/>
+    <path d="M120 80C150 95 150 145 120 160" stroke="url(#helixGradient)" stroke-width="8" stroke-linecap="round"/>
+    <path d="M90 80C60 95 60 145 90 160" stroke="#BFEFFF" stroke-opacity="0.95" stroke-width="8" stroke-linecap="round"/>
+    <path d="M90 30C90 30 110 45 120 60C130 75 130 90 120 105C110 120 90 135 90 150" stroke="url(#helixGradient)" stroke-width="10" stroke-linecap="round" stroke-linejoin="round"/>
+    <path d="M120 30C120 30 100 45 90 60C80 75 80 90 90 105C100 120 120 135 120 150" stroke="#BFEFFF" stroke-opacity="0.95" stroke-width="10" stroke-linecap="round" stroke-linejoin="round"/>
+    <path d="M82 170C112 180 120 195 120 210" stroke="url(#helixGradient)" stroke-width="8" stroke-linecap="round"/>
+    <path d="M128 170C98 180 90 195 90 210" stroke="#BFEFFF" stroke-opacity="0.95" stroke-width="8" stroke-linecap="round"/>
+    <circle cx="120" cy="210" r="10" fill="#5EE7F2"/>
+    <circle cx="90" cy="210" r="10" fill="#7C4DFF"/>
+    <circle cx="120" cy="30" r="8" fill="#7C4DFF"/>
+    <circle cx="90" cy="30" r="8" fill="#5EE7F2"/>
+  </g>
+
+  <g transform="translate(520 170)">
+    <rect x="0" y="20" width="84" height="84" rx="20" fill="#0C244F" stroke="#5EE7F2" stroke-width="3"/>
+    <path d="M34 46H50" stroke="#5EE7F2" stroke-width="6" stroke-linecap="round"/>
+    <path d="M34 62H60" stroke="#7C4DFF" stroke-width="6" stroke-linecap="round"/>
+    <path d="M34 78H44" stroke="#5EE7F2" stroke-width="6" stroke-linecap="round"/>
+    <path d="M115 40L145 70L115 100" stroke="#5EE7F2" stroke-width="8" stroke-linecap="round" stroke-linejoin="round"/>
+    <path d="M176 42C194 42 210 58 210 76C210 94 194 110 176 110" stroke="#7C4DFF" stroke-width="8" stroke-linecap="round"/>
+    <path d="M176 132C158 132 142 116 142 98" stroke="#5EE7F2" stroke-width="8" stroke-linecap="round"/>
+  </g>
+
+  <text x="520" y="260" fill="#F6FCFF" font-family="Segoe UI, Arial, sans-serif" font-size="92" font-weight="800" letter-spacing="2.5">SATB2</text>
+  <text x="520" y="315" fill="#8DEBFF" font-family="Segoe UI, Arial, sans-serif" font-size="28" font-weight="700" letter-spacing="5">GENOMIC INTELLIGENCE PLATFORM</text>
+  <text x="520" y="355" fill="#B5CBE2" font-family="Segoe UI, Arial, sans-serif" font-size="24" font-weight="500">CRISPRa • Precision Medicine • AI-Driven Discovery</text>
+</svg>

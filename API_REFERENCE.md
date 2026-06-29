@@ -3,7 +3,7 @@
 **Base URL (local):** `http://localhost:8080`  
 **Base URL (production):** `https://<api-gateway-id>.execute-api.us-east-1.amazonaws.com`  
 **API Version:** `2.0.0`  
-**Authentication:** None required for `/api/**` (CORS restricted to `http://localhost:4200` in production)
+**Authentication:** No authentication is required for the current demo experience. The frontend is served from `http://localhost:3000` and the backend API is available at `http://localhost:8080`.
 
 ---
 

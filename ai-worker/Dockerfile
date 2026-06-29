@@ -2,9 +2,10 @@ FROM python:3.12-slim
 
 WORKDIR /app
 
-# Install system dependencies for biopython
+# Install C build toolchain — required for biopython on ARM64 (WSL2)
 RUN apt-get update && apt-get install -y --no-install-recommends \
     gcc \
+    libc-dev \
     && rm -rf /var/lib/apt/lists/*
 
 COPY requirements.txt .

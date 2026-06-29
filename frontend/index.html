@@ -1,0 +1,364 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <link rel="icon" type="image/x-icon" href="/favicon.ico" />
+    <title>SATB2 Intelligence Platform</title>
+    <style>
+      :root {
+        --bg: #06111f;
+        --panel: rgba(10, 24, 44, 0.92);
+        --text: #f4f8ff;
+        --muted: #9ab0ce;
+        --accent: #4ed7ff;
+        --accent-2: #7e6bff;
+        --good: #34d399;
+        --warn: #f59e0b;
+        --bad: #fb7185;
+      }
+      * { box-sizing: border-box; }
+      body { margin: 0; font-family: Inter, Segoe UI, Arial, sans-serif; background: radial-gradient(circle at top left, #12355c, var(--bg) 55%, #040b16 100%); color: var(--text); }
+      .wrap { max-width: 1400px; margin: 0 auto; padding: 28px; }
+      .topbar { display: flex; justify-content: space-between; align-items: center; gap: 12px; margin-bottom: 20px; }
+      .brand { font-weight: 800; font-size: 1.2rem; }
+      .nav { display: flex; gap: 8px; flex-wrap: wrap; }
+      .nav button, .action-btn { padding: 10px 14px; border-radius: 999px; border: 1px solid rgba(255,255,255,0.12); background: rgba(255,255,255,0.06); color: var(--text); cursor: pointer; }
+      .nav button.active, .action-btn { background: linear-gradient(90deg, var(--accent), var(--accent-2)); border: none; }
+      .card { background: var(--panel); border: 1px solid rgba(255,255,255,0.12); border-radius: 22px; padding: 20px; box-shadow: 0 14px 40px rgba(0,0,0,0.25); }
+      .hero { display: grid; grid-template-columns: 1.2fr .8fr; gap: 20px; margin-bottom: 20px; }
+      .pill-row { display: flex; gap: 8px; flex-wrap: wrap; margin-top: 10px; }
+      .pill { padding: 8px 12px; border-radius: 999px; background: rgba(255,255,255,0.08); color: #cfe8ff; font-size: .88rem; }
+      .grid { display: grid; grid-template-columns: 1fr 1fr; gap: 20px; margin-bottom: 20px; }
+      form, .form-stack { display: flex; flex-direction: column; gap: 12px; }
+      label { font-size: .9rem; color: #d7e8ff; }
+      input, button, textarea, select { width: 100%; padding: 12px 14px; border-radius: 12px; border: 1px solid rgba(255,255,255,0.13); background: rgba(255,255,255,0.06); color: var(--text); font-size: 1rem; }
+      button { cursor: pointer; font-weight: 700; }
+      .status { display: inline-block; padding: 6px 10px; border-radius: 999px; font-size: .8rem; font-weight: 700; }
+      .PENDING { background: rgba(245, 158, 11, 0.2); color: var(--warn); }
+      .PROCESSING { background: rgba(78, 215, 255, 0.18); color: var(--accent); }
+      .COMPLETED { background: rgba(52, 211, 153, 0.2); color: var(--good); }
+      .FAILED { background: rgba(251, 113, 133, 0.2); color: var(--bad); }
+      .list { display: flex; flex-direction: column; gap: 12px; }
+      .item { padding: 14px; border-radius: 14px; background: rgba(255,255,255,0.05); border: 1px solid rgba(255,255,255,0.1); cursor: pointer; }
+      .muted { color: var(--muted); }
+      .metric { display: flex; justify-content: space-between; margin-top: 8px; font-size: .9rem; color: #dceeff; }
+      .tiny { font-size: .83rem; color: var(--muted); }
+      .dashboard-grid { display: grid; grid-template-columns: repeat(4, 1fr); gap: 16px; margin-bottom: 16px; }
+      .kpi { padding: 16px; border-radius: 16px; background: rgba(255,255,255,0.05); border: 1px solid rgba(255,255,255,0.1); }
+      .bar { height: 8px; border-radius: 999px; background: rgba(255,255,255,0.08); margin-top: 8px; overflow: hidden; }
+      .bar > i { display: block; height: 100%; background: linear-gradient(90deg, var(--accent), var(--accent-2)); }
+      .hidden { display: none; }
+      .auth-screen { min-height: 100vh; display: grid; place-items: center; padding: 24px; }
+      .auth-box { width: min(420px, 100%); }
+      .detail-frame { display: grid; grid-template-columns: 1fr 1fr; gap: 20px; }
+      .pre { white-space: pre-wrap; word-break: break-word; background: rgba(255,255,255,0.04); padding: 14px; border-radius: 14px; border:1px solid rgba(255,255,255,0.12); }
+      @media (max-width: 1000px) { .hero, .grid, .detail-frame, .dashboard-grid { grid-template-columns: 1fr; } }
+    </style>
+  </head>
+  <body>
+    <div id="app" class="wrap">
+      <div class="topbar">
+        <div class="brand">SATB2 Intelligence Platform</div>
+        <div class="nav">
+          <button class="nav-btn active" data-view="overview">Overview</button>
+          <button class="nav-btn" data-view="details">Analysis Details</button>
+          <button class="nav-btn" data-view="dashboard">Executive Dashboard</button>
+        </div>
+      </div>
+
+      <section id="overview" class="view">
+        <div class="hero">
+          <div class="card">
+            <h1 style="margin-top:0">Precision genomics, accelerated</h1>
+            <p class="muted">Upload genomic files, monitor AI-driven classification, and track therapeutic recommendations in a secure single workspace.</p>
+            <div class="pill-row">
+              <span class="pill">AI Variant Intelligence</span>
+              <span class="pill">CRISPRa Design</span>
+              <span class="pill">Executive Oversight</span>
+            </div>
+          </div>
+          <div class="card">
+            <h3 style="margin-top:0">New Analysis</h3>
+            <form id="uploadForm">
+              <label>Patient Code</label>
+              <input id="patientCode" placeholder="e.g. SATB2-PT-001" required />
+              <label>Genomic File</label>
+              <input id="fileInput" type="file" accept=".fasta,.fa,.vcf" required />
+              <button type="submit">Launch Analysis</button>
+            </form>
+            <p id="message" class="tiny" style="margin-top:12px"></p>
+          </div>
+        </div>
+
+        <div class="grid">
+          <div class="card">
+            <h3 style="margin-top:0">System Status</h3>
+            <div class="metric"><span>Backend API</span><strong id="apiStatus">Checking...</strong></div>
+            <div class="metric"><span>Queue Processing</span><strong id="queueStatus">Ready</strong></div>
+            <div class="metric"><span>Local Storage</span><strong>Connected</strong></div>
+          </div>
+          <div class="card">
+            <h3 style="margin-top:0">Analysis Lookup</h3>
+            <input id="analysisId" placeholder="Enter analysis ID" />
+            <button id="lookupBtn" style="margin-top:10px">Load Result</button>
+            <div id="lookupResult" class="results"></div>
+          </div>
+        </div>
+
+        <div class="card">
+          <h3 style="margin-top:0">Recent Analyses</h3>
+          <div id="historyList" class="list"></div>
+        </div>
+      </section>
+
+      <section id="details" class="view hidden">
+        <div class="card">
+          <h3 style="margin-top:0">Analysis Details</h3>
+          <div class="detail-frame">
+            <div class="form-stack">
+              <label>Analysis ID</label>
+              <input id="detailId" placeholder="Enter analysis ID" />
+              <button id="detailLookupBtn">Open Detailed View</button>
+              <div id="detailSummary" class="tiny" style="margin-top:6px"></div>
+            </div>
+            <div id="detailPanel" class="pre">Select an analysis to inspect the full record and result payload.</div>
+          </div>
+        </div>
+      </section>
+
+      <section id="dashboard" class="view hidden">
+        <div class="card">
+          <h3 style="margin-top:0">Executive Dashboard</h3>
+          <div class="dashboard-grid">
+            <div class="kpi"><div class="tiny">Total Analyses</div><h2 id="kpiTotal">0</h2></div>
+            <div class="kpi"><div class="tiny">Completed</div><h2 id="kpiCompleted">0</h2></div>
+            <div class="kpi"><div class="tiny">Pending / Processing</div><h2 id="kpiActive">0</h2></div>
+            <div class="kpi"><div class="tiny">High-Risk Signals</div><h2 id="kpiRisk">0</h2></div>
+          </div>
+          <div class="grid">
+            <div class="card">
+              <h4 style="margin-top:0">Status Distribution</h4>
+              <div id="statusBars"></div>
+            </div>
+            <div class="card">
+              <h4 style="margin-top:0">Operational Readiness</h4>
+              <div class="metric"><span>API Reachability</span><strong id="dashApi">Online</strong></div>
+              <div class="metric"><span>Queue Availability</span><strong>Stable</strong></div>
+              <div class="metric"><span>Clinical Review Queue</span><strong id="dashReview">Ready</strong></div>
+            </div>
+          </div>
+        </div>
+      </section>
+    </div>
+
+    <script>
+      const API = 'http://localhost:8080/api/genomic';
+      const navButtons = document.querySelectorAll('.nav-btn');
+      const views = document.querySelectorAll('.view');
+      const form = document.getElementById('uploadForm');
+      const message = document.getElementById('message');
+      const historyList = document.getElementById('historyList');
+      const lookupBtn = document.getElementById('lookupBtn');
+      const analysisIdInput = document.getElementById('analysisId');
+      const lookupResult = document.getElementById('lookupResult');
+      const apiStatus = document.getElementById('apiStatus');
+      const detailIdInput = document.getElementById('detailId');
+      const detailLookupBtn = document.getElementById('detailLookupBtn');
+      const detailSummary = document.getElementById('detailSummary');
+      const detailPanel = document.getElementById('detailPanel');
+      const statusBars = document.getElementById('statusBars');
+      const kpiTotal = document.getElementById('kpiTotal');
+      const kpiCompleted = document.getElementById('kpiCompleted');
+      const kpiActive = document.getElementById('kpiActive');
+      const kpiRisk = document.getElementById('kpiRisk');
+      const dashApi = document.getElementById('dashApi');
+      const dashReview = document.getElementById('dashReview');
+      let analyses = [];
+      let currentView = 'overview';
+
+      navButtons.forEach(button => {
+        button.addEventListener('click', () => {
+          currentView = button.dataset.view;
+          navButtons.forEach(btn => btn.classList.toggle('active', btn === button));
+          views.forEach(view => view.classList.toggle('hidden', view.id !== currentView));
+        });
+      });
+
+      async function checkHealth() {
+        try {
+          const res = await fetch(`${API}/health`);
+          if (res.ok) {
+            apiStatus.textContent = 'Online';
+            apiStatus.style.color = '#34d399';
+            dashApi.textContent = 'Online';
+            dashApi.style.color = '#34d399';
+            dashReview.textContent = 'Ready';
+          } else {
+            apiStatus.textContent = 'Offline';
+            apiStatus.style.color = '#fb7185';
+            dashApi.textContent = 'Offline';
+            dashApi.style.color = '#fb7185';
+            dashReview.textContent = 'Needs attention';
+          }
+        } catch {
+          apiStatus.textContent = 'Offline';
+          apiStatus.style.color = '#fb7185';
+          dashApi.textContent = 'Offline';
+          dashApi.style.color = '#fb7185';
+          dashReview.textContent = 'Needs attention';
+        }
+      }
+
+      function renderHistory(items) {
+        if (!Array.isArray(items) || !items.length) {
+          historyList.innerHTML = '<div class="tiny">No analyses available yet.</div>';
+          return;
+        }
+        historyList.innerHTML = items.slice(0, 8).map(item => `
+          <div class="item" data-id="${item.analysisId}">
+            <div style="display:flex; justify-content:space-between; gap:10px; align-items:center;">
+              <strong>${item.fileName || 'Unknown file'}</strong>
+              <span class="status ${item.status}">${item.status}</span>
+            </div>
+            <div class="tiny">${item.analysisId}</div>
+            <div class="metric"><span>Patient</span><strong>${item.patientCode}</strong></div>
+            <div class="metric"><span>Created</span><strong>${item.createdAt ? new Date(item.createdAt).toLocaleString() : 'Pending'}</strong></div>
+          </div>
+        `).join('');
+        historyList.querySelectorAll('.item').forEach(card => {
+          card.addEventListener('click', () => {
+            const id = card.dataset.id;
+            detailIdInput.value = id;
+            showAnalysisDetail(id);
+            currentView = 'details';
+            navButtons.forEach(btn => btn.classList.toggle('active', btn.dataset.view === 'details'));
+            views.forEach(view => view.classList.toggle('hidden', view.id !== 'details'));
+          });
+        });
+      }
+
+      async function loadHistory(patientCode = 'SATB2-PT-001') {
+        try {
+          const res = await fetch(`${API}/analysis/patient/${encodeURIComponent(patientCode)}`);
+          const data = await res.json();
+          if (!Array.isArray(data)) throw new Error('No history');
+          analyses = data;
+          renderHistory(analyses);
+          renderDashboard(analyses);
+        } catch {
+          analyses = [];
+          renderHistory([]);
+          renderDashboard([]);
+        }
+      }
+
+      function renderDashboard(items) {
+        const total = items.length;
+        const completed = items.filter(item => item.status === 'COMPLETED').length;
+        const active = items.filter(item => item.status === 'PENDING' || item.status === 'PROCESSING').length;
+        const risk = items.filter(item => {
+          if (!item.resultJson) return false;
+          try { const parsed = JSON.parse(item.resultJson); return parsed?.summary?.high_risk_sequences > 0 || parsed?.clinical_recommendation?.includes('CRITICAL'); } catch { return false; }
+        }).length;
+        kpiTotal.textContent = total;
+        kpiCompleted.textContent = completed;
+        kpiActive.textContent = active;
+        kpiRisk.textContent = risk;
+        const counts = { PENDING: 0, PROCESSING: 0, COMPLETED: 0, FAILED: 0 };
+        items.forEach(item => counts[item.status] = (counts[item.status] || 0) + 1);
+        statusBars.innerHTML = Object.entries(counts).map(([status, count]) => `
+          <div class="metric"><span>${status}</span><strong>${count}</strong></div>
+          <div class="bar"><i style="width:${Math.max(8, (count / Math.max(total, 1)) * 100)}%"></i></div>
+        `).join('');
+      }
+
+      async function showAnalysisDetail(id) {
+        detailSummary.textContent = 'Loading detail view...';
+        detailPanel.textContent = 'Loading...';
+        try {
+          const res = await fetch(`${API}/analysis/${encodeURIComponent(id)}`);
+          const data = await res.json();
+          detailSummary.textContent = `${data.fileName} • ${data.patientCode}`;
+          const parsedResult = safeParseJson(data.resultJson);
+          detailPanel.innerHTML = `
+            <strong>Analysis ID:</strong> ${data.analysisId}<br><br>
+            <strong>Patient:</strong> ${data.patientCode}<br>
+            <strong>Status:</strong> ${data.status}<br>
+            <strong>Created:</strong> ${data.createdAt ? new Date(data.createdAt).toLocaleString() : '—'}<br>
+            <strong>Completed:</strong> ${data.completedAt ? new Date(data.completedAt).toLocaleString() : 'Pending'}<br><br>
+            <strong>Result Summary</strong><br>${renderResult(parsedResult)}
+          `;
+        } catch {
+          detailSummary.textContent = 'Unable to load analysis details.';
+          detailPanel.textContent = 'No detail payload available.';
+        }
+      }
+
+      function safeParseJson(value) {
+        if (!value) return null;
+        try { return JSON.parse(value); } catch { return value; }
+      }
+
+      function renderResult(result) {
+        if (!result) return 'Results will appear when processing completes.';
+        if (typeof result === 'object') {
+          return `<pre>${JSON.stringify(result, null, 2)}</pre>`;
+        }
+        return `<pre>${result}</pre>`;
+      }
+
+      form.addEventListener('submit', async (e) => {
+        e.preventDefault();
+        const patientCode = document.getElementById('patientCode').value.trim();
+        const file = document.getElementById('fileInput').files[0];
+        if (!patientCode || !file) return;
+        const formData = new FormData();
+        formData.append('patientCode', patientCode);
+        formData.append('file', file);
+        message.textContent = 'Submitting analysis...';
+        try {
+          const res = await fetch(`${API}/upload`, { method: 'POST', body: formData });
+          const data = await res.json();
+          message.textContent = data.message || 'Analysis submitted.';
+          loadHistory(patientCode);
+          detailIdInput.value = data.analysisId || '';
+        } catch {
+          message.textContent = 'Submission failed.';
+        }
+      });
+
+      lookupBtn.addEventListener('click', async () => {
+        const id = analysisIdInput.value.trim();
+        if (!id) return;
+        lookupResult.innerHTML = '<div class="tiny">Loading...</div>';
+        try {
+          const res = await fetch(`${API}/analysis/${encodeURIComponent(id)}`);
+          const data = await res.json();
+          lookupResult.innerHTML = `
+            <div class="item">
+              <div style="display:flex; justify-content:space-between; align-items:center;">
+                <strong>${data.fileName || 'Analysis'}</strong>
+                <span class="status ${data.status}">${data.status}</span>
+              </div>
+              <div class="metric"><span>Patient</span><strong>${data.patientCode}</strong></div>
+              <div class="metric"><span>Created</span><strong>${data.createdAt ? new Date(data.createdAt).toLocaleString() : '—'}</strong></div>
+              <div class="metric"><span>Completed</span><strong>${data.completedAt ? new Date(data.completedAt).toLocaleString() : 'Pending'}</strong></div>
+              <div class="pre" style="margin-top:10px">${renderResult(safeParseJson(data.resultJson))}</div>
+            </div>
+          `;
+        } catch {
+          lookupResult.innerHTML = '<div class="tiny">Unable to load analysis.</div>';
+        }
+      });
+
+      detailLookupBtn.addEventListener('click', () => {
+        const id = detailIdInput.value.trim();
+        if (id) showAnalysisDetail(id);
+      });
+
+      checkHealth();
+      loadHistory();
+    </script>
+  </body>
+</html>

@@ -58,21 +58,19 @@ Since the patient retains one healthy copy of SATB2, the most promising therapeu
 │                    SATB2 PLATFORM v2.0                  │
 ├─────────────────────────────────────────────────────────┤
 │                                                         │
-│  [Angular Frontend]  ◄── Phase 4 (planned)              │
+│  [Static Frontend]  ──► http://localhost:3000          │
 │          │                                              │
-│  [AWS API Gateway]                                      │
+│  [Spring Boot Backend] ──► http://localhost:8080       │
 │          │                                              │
-│  [Spring Boot Backend] ──► [S3]  (raw .fasta/.vcf)      │
+│  [SQS Queue]                                           │
 │          │                                              │
-│  [SQS Queue]                                            │
+│  [Python AI Worker] ──► PostgreSQL + LocalStack        │
 │          │                                              │
-│  [Python AI Worker]  ──► [S3]  (results JSON)           │
+│  [S3 / LocalStack]  (raw files + result JSON)         │
 │          │                                              │
-│  [Amazon SageMaker]  ◄── Phase 3 (planned)              │
-│          │                                              │
-│  [PostgreSQL]  (analysis history + status tracking)     │
+│  [PostgreSQL]  (analysis history + status tracking)   │
 │                                                         │
-│  Local dev: S3 + SQS emulated by LocalStack             │
+│  Local development runs entirely through Docker Compose │
 └─────────────────────────────────────────────────────────┘
 ```
 
@@ -149,7 +147,7 @@ GENETICS/
 │   │   │   └── GlobalExceptionHandler.java  # 500/413 handlers
 │   │   └── config/
 │   │       ├── AwsConfig.java               # S3/SQS beans — StaticCredentials for LocalStack, Default for AWS
-│   │       └── SecurityConfig.java          # CSRF disabled, CORS → localhost:4200
+│   │       └── SecurityConfig.java          # CSRF disabled, CORS → localhost:3000
 │   ├── src/main/resources/application.yml
 │   ├── Dockerfile                           # multi-stage Maven → JRE alpine
 │   └── pom.xml
@@ -164,6 +162,11 @@ GENETICS/
 │   │   └── sequence_embedder.py             # k=6 tokenization + cosine distance
 │   ├── requirements.txt                     # biopython, boto3, requests, numpy (lightweight — ~50MB)
 │   └── Dockerfile                           # python:3.12-slim + gcc + PYTHONPATH=/app
+│
+├── frontend/
+│   ├── index.html                     # polished single-page UI served by nginx
+│   ├── favicon.ico
+│   └── Dockerfile
 │
 ├── infra/
 │   ├── main.tf       # S3+versioning+SSE, SQS+DLQ, RDS PG15, ECR×2, SageMaker, IAM roles×3, SG
@@ -202,39 +205,37 @@ GENETICS/
 | 2.5 | DB persistence + bidirectional status tracking + rollback + error handling | ✅ Complete |
 | 2.6 | 100% local mode — LocalStack 3.4 (Windows-compatible) + offline ClinVar cache | ✅ Complete |
 | 3 | SageMaker integration — DNABERT-2 + gRNA design AI models | 🔴 Ready to start |
-| 4 | Angular frontend — researcher portal + visual reports + export | 🔴 Ready to start |
+| 4 | Static frontend experience — upload workflow, analysis details, executive dashboard | ✅ Available |
 
 ---
 
 ## Quick Start
 
-**Single requirement: Docker Desktop.**
+A single requirement is enough: Docker Desktop.
 
 ```bash
-# Start entire system locally (zero AWS needed)
-docker-compose up --build
+# Start the full local platform
+docker compose up --build
+```
 
+Then open the UI at http://localhost:3000 and use the backend API at http://localhost:8080.
+
+```bash
 # Health check
 curl http://localhost:8080/api/genomic/health
 
-# Upload FASTA
+# Upload a FASTA sample
 curl -X POST http://localhost:8080/api/genomic/upload \
   -F "file=@test-data/sample_satb2.fasta" \
   -F "patientCode=SATB2-PT-001"
 
-# Upload VCF
+# Upload a VCF sample
 curl -X POST http://localhost:8080/api/genomic/upload \
   -F "file=@test-data/sample_satb2.vcf" \
   -F "patientCode=SATB2-PT-001"
 
-# Query analysis result (replace {id} with analysisId from upload response)
-curl http://localhost:8080/api/genomic/analysis/{id}
-
-# List all analyses for a patient
+# List analyses for a patient
 curl http://localhost:8080/api/genomic/analysis/patient/SATB2-PT-001
-
-# Windows automated test
-scripts\test-integration.bat
 ```
 
 See [LOCAL_SETUP.md](LOCAL_SETUP.md) for the full local guide and troubleshooting.  
