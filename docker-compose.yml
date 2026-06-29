@@ -1,0 +1,135 @@
+version: '3.8'
+
+services:
+
+  # ─────────────────────────────────────────────
+  # PostgreSQL — relational database
+  # ─────────────────────────────────────────────
+  postgres:
+    image: postgres:15-alpine
+    container_name: satb2-postgres
+    environment:
+      POSTGRES_DB: satb2db
+      POSTGRES_USER: satb2user
+      POSTGRES_PASSWORD: satb2pass
+    ports:
+      - "5432:5432"
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U satb2user -d satb2db"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+
+  # ─────────────────────────────────────────────
+  # LocalStack — emulates S3 + SQS locally
+  # No docker.sock needed (SERVICES mode only)
+  # ─────────────────────────────────────────────
+  localstack:
+    image: localstack/localstack:3.4
+    container_name: satb2-localstack
+    environment:
+      SERVICES: s3,sqs
+      DEFAULT_REGION: us-east-1
+      EAGER_SERVICE_LOADING: 1
+      LOCALSTACK_HOST: localstack
+    ports:
+      - "4566:4566"
+    volumes:
+      - localstack_data:/var/lib/localstack
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:4566/_localstack/health"]
+      interval: 10s
+      timeout: 5s
+      retries: 10
+      start_period: 15s
+
+  # ─────────────────────────────────────────────
+  # Init — creates S3 bucket and SQS queue
+  # ─────────────────────────────────────────────
+  init-aws:
+    image: amazon/aws-cli:latest
+    container_name: satb2-init-aws
+    depends_on:
+      localstack:
+        condition: service_healthy
+    environment:
+      AWS_ACCESS_KEY_ID: test
+      AWS_SECRET_ACCESS_KEY: test
+      AWS_DEFAULT_REGION: us-east-1
+    entrypoint: /bin/sh
+    command:
+      - -c
+      - |
+        echo "Creating S3 bucket..."
+        aws --endpoint-url=http://localstack:4566 s3 mb s3://satb2-research-data --region us-east-1
+        echo "Creating S3 folders..."
+        aws --endpoint-url=http://localstack:4566 s3api put-object --bucket satb2-research-data --key raw-sequences/
+        aws --endpoint-url=http://localstack:4566 s3api put-object --bucket satb2-research-data --key results/
+        echo "Creating SQS queue..."
+        aws --endpoint-url=http://localstack:4566 sqs create-queue \
+          --queue-name satb2-analysis-queue \
+          --attributes VisibilityTimeout=300
+        echo "Creating SQS dead-letter queue..."
+        aws --endpoint-url=http://localstack:4566 sqs create-queue \
+          --queue-name satb2-dlq
+        echo "All AWS resources initialized successfully."
+
+  # ─────────────────────────────────────────────
+  # Spring Boot Backend
+  # ─────────────────────────────────────────────
+  backend:
+    build:
+      context: ./backend
+      dockerfile: Dockerfile
+    container_name: satb2-backend
+    depends_on:
+      postgres:
+        condition: service_healthy
+      init-aws:
+        condition: service_completed_successfully
+    environment:
+      SPRING_PROFILES_ACTIVE: local
+      DB_URL: jdbc:postgresql://postgres:5432/satb2db
+      DB_USER: satb2user
+      DB_PASS: satb2pass
+      AWS_REGION: us-east-1
+      S3_BUCKET: satb2-research-data
+      SQS_QUEUE_URL: http://localstack:4566/000000000000/satb2-analysis-queue
+      AWS_ACCESS_KEY_ID: test
+      AWS_SECRET_ACCESS_KEY: test
+      AWS_ENDPOINT_OVERRIDE: http://localstack:4566
+    ports:
+      - "8080:8080"
+    healthcheck:
+      test: ["CMD-SHELL", "curl -f http://localhost:8080/api/genomic/health || exit 1"]
+      interval: 20s
+      timeout: 10s
+      retries: 5
+      start_period: 60s
+
+  # ─────────────────────────────────────────────
+  # Python AI Worker
+  # ─────────────────────────────────────────────
+  worker:
+    build:
+      context: ./ai-worker
+      dockerfile: Dockerfile
+    container_name: satb2-worker
+    depends_on:
+      backend:
+        condition: service_healthy
+    environment:
+      SQS_QUEUE_URL: http://localstack:4566/000000000000/satb2-analysis-queue
+      S3_BUCKET: satb2-research-data
+      AWS_REGION: us-east-1
+      AWS_ACCESS_KEY_ID: test
+      AWS_SECRET_ACCESS_KEY: test
+      AWS_ENDPOINT_URL: http://localstack:4566
+      BACKEND_URL: http://backend:8080
+    restart: on-failure
+
+volumes:
+  postgres_data:
+  localstack_data:
