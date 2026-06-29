@@ -259,7 +259,3 @@ See [API_REFERENCE.md](API_REFERENCE.md) for all endpoints with schemas and exam
 ## Contributing
 
 See [CONTRIBUTING.md](CONTRIBUTING.md) for contribution opportunities, code standards, and how to reach research institutions.
-
-**Key contacts:**
-- SATB2 Gene Foundation: info@satb2gene.org
-- Chan Zuckerberg Initiative (Open Science): openscience@chanzuckerberg.com
