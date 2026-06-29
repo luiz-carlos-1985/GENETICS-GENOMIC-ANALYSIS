@@ -1,0 +1,25 @@
+spring:
+  application:
+    name: satb2-backend
+  servlet:
+    multipart:
+      max-file-size: 500MB
+      max-request-size: 500MB
+  datasource:
+    url: ${DB_URL:jdbc:postgresql://localhost:5432/satb2db}
+    username: ${DB_USER:satb2user}
+    password: ${DB_PASS:satb2pass}
+  jpa:
+    hibernate:
+      ddl-auto: update
+    show-sql: false
+
+aws:
+  region: ${AWS_REGION:us-east-1}
+  s3:
+    bucket-name: ${S3_BUCKET:satb2-research-data}
+  sqs:
+    queue-url: ${SQS_QUEUE_URL:http://localhost:4566/000000000000/satb2-analysis-queue}
+
+server:
+  port: 8080
