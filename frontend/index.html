@@ -52,8 +52,22 @@
       .auth-screen { min-height: 100vh; display: grid; place-items: center; padding: 24px; }
       .auth-box { width: min(420px, 100%); }
       .detail-frame { display: grid; grid-template-columns: 1fr 1fr; gap: 20px; }
+      .detail-shell { display: flex; flex-direction: column; gap: 12px; }
+      .detail-card { background: rgba(255,255,255,0.05); border: 1px solid rgba(255,255,255,0.12); border-radius: 16px; padding: 14px; }
+      .detail-card h4 { margin: 0 0 10px; font-size: 1rem; }
+      .detail-grid { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 10px; }
+      .detail-row { display: flex; justify-content: space-between; gap: 8px; padding: 8px 0; border-bottom: 1px solid rgba(255,255,255,0.08); }
+      .detail-row:last-child { border-bottom: none; }
+      .detail-pill { display: inline-flex; align-items: center; gap: 6px; padding: 6px 10px; border-radius: 999px; background: rgba(78, 215, 255, 0.14); color: #cfeeff; font-size: .82rem; margin-right: 8px; margin-top: 6px; }
+      .detail-list { display: flex; flex-direction: column; gap: 8px; }
+      .detail-item { padding: 10px; border-radius: 12px; background: rgba(255,255,255,0.04); border: 1px solid rgba(255,255,255,0.1); }
+      .detail-item strong { display: block; margin-bottom: 4px; }
+      .detail-empty { color: var(--muted); font-style: italic; }
       .pre { white-space: pre-wrap; word-break: break-word; background: rgba(255,255,255,0.04); padding: 14px; border-radius: 14px; border:1px solid rgba(255,255,255,0.12); }
-      @media (max-width: 1000px) { .hero, .grid, .detail-frame, .dashboard-grid { grid-template-columns: 1fr; } }
+      .risk-high { color: #fb7185; font-weight: 700; }
+      .risk-moderate { color: #f59e0b; font-weight: 700; }
+      .risk-low { color: #34d399; font-weight: 700; }
+      @media (max-width: 1000px) { .hero, .grid, .detail-frame, .dashboard-grid { grid-template-columns: 1fr; } .detail-grid { grid-template-columns: 1fr; } }
     </style>
   </head>
   <body>
@@ -274,25 +288,160 @@
       }
 
       async function showAnalysisDetail(id) {
-        detailSummary.textContent = 'Loading detail view...';
-        detailPanel.textContent = 'Loading...';
+        detailSummary.innerHTML = '<span class="detail-pill">Loading detail view…</span>';
+        detailPanel.innerHTML = '<div class="detail-empty">Loading analysis details…</div>';
         try {
           const res = await fetch(`${API}/analysis/${encodeURIComponent(id)}`);
           const data = await res.json();
-          detailSummary.textContent = `${data.fileName} • ${data.patientCode}`;
           const parsedResult = safeParseJson(data.resultJson);
-          detailPanel.innerHTML = `
-            <strong>Analysis ID:</strong> ${data.analysisId}<br><br>
-            <strong>Patient:</strong> ${data.patientCode}<br>
-            <strong>Status:</strong> ${data.status}<br>
-            <strong>Created:</strong> ${data.createdAt ? new Date(data.createdAt).toLocaleString() : '—'}<br>
-            <strong>Completed:</strong> ${data.completedAt ? new Date(data.completedAt).toLocaleString() : 'Pending'}<br><br>
-            <strong>Result Summary</strong><br>${renderResult(parsedResult)}
+          detailSummary.innerHTML = `
+            <span class="detail-pill">${escapeHtml(data.fileName || 'Analysis')}</span>
+            <span class="detail-pill">${escapeHtml(data.patientCode || 'Unknown patient')}</span>
+            <span class="detail-pill">${escapeHtml(data.status || 'Unknown')}</span>
           `;
+          detailPanel.innerHTML = renderDetailPanel(data, parsedResult);
         } catch {
-          detailSummary.textContent = 'Unable to load analysis details.';
-          detailPanel.textContent = 'No detail payload available.';
+          detailSummary.innerHTML = '<span class="detail-pill">Unable to load analysis details</span>';
+          detailPanel.innerHTML = '<div class="detail-empty">No detail payload was available.</div>';
         }
+      }
+
+      function escapeHtml(value) {
+        return String(value)
+          .replace(/&/g, '&amp;')
+          .replace(/</g, '&lt;')
+          .replace(/>/g, '&gt;')
+          .replace(/"/g, '&quot;')
+          .replace(/'/g, '&#39;');
+      }
+
+      function formatCell(value) {
+        if (value === null || value === undefined || value === '') return '—';
+        if (typeof value === 'number') return Number.isInteger(value) ? String(value) : value.toFixed(2);
+        if (typeof value === 'boolean') return value ? 'Yes' : 'No';
+        return String(value);
+      }
+
+      function renderDetailPanel(data, result) {
+        const overviewRows = [
+          ['Analysis ID', data.analysisId || '—'],
+          ['Patient', data.patientCode || '—'],
+          ['Status', data.status || '—'],
+          ['Created', data.createdAt ? new Date(data.createdAt).toLocaleString() : '—'],
+          ['Completed', data.completedAt ? new Date(data.completedAt).toLocaleString() : 'Pending']
+        ];
+        const overviewHtml = `
+          <div class="detail-card">
+            <h4>Overview</h4>
+            <div class="detail-grid">
+              ${overviewRows.map(([label, value]) => `
+                <div class="detail-row">
+                  <span class="muted">${escapeHtml(label)}</span>
+                  <strong>${escapeHtml(formatCell(value))}</strong>
+                </div>
+              `).join('')}
+            </div>
+          </div>
+        `;
+
+        const resultHtml = renderFriendlyResult(result);
+        return `<div class="detail-shell">${overviewHtml}${resultHtml}</div>`;
+      }
+
+      function renderFriendlyResult(result) {
+        if (!result) {
+          return `<div class="detail-card"><h4>Result summary</h4><div class="detail-empty">Results will appear when processing completes.</div></div>`;
+        }
+
+        if (typeof result !== 'object') {
+          return `<div class="detail-card"><h4>Result summary</h4><div class="pre">${escapeHtml(result)}</div></div>`;
+        }
+
+        const sections = [];
+
+        if (result.summary && typeof result.summary === 'object') {
+          const summary = result.summary;
+          sections.push(`
+            <div class="detail-card">
+              <h4>Clinical summary</h4>
+              <div class="detail-grid">
+                <div class="detail-row"><span class="muted">High risk</span><strong class="risk-high">${escapeHtml(formatCell(summary.high_risk_sequences))}</strong></div>
+                <div class="detail-row"><span class="muted">Moderate risk</span><strong class="risk-moderate">${escapeHtml(formatCell(summary.moderate_risk_sequences))}</strong></div>
+                <div class="detail-row"><span class="muted">Low risk</span><strong class="risk-low">${escapeHtml(formatCell(summary.low_risk_sequences))}</strong></div>
+                <div class="detail-row"><span class="muted">Recommendation</span><strong>${escapeHtml(formatCell(summary.recommendation))}</strong></div>
+              </div>
+            </div>
+          `);
+        }
+
+        if (result.clinical_recommendation) {
+          sections.push(`
+            <div class="detail-card">
+              <h4>Recommendation</h4>
+              <div class="pre">${escapeHtml(result.clinical_recommendation)}</div>
+            </div>
+          `);
+        }
+
+        if (Array.isArray(result.sequences) && result.sequences.length) {
+          sections.push(`
+            <div class="detail-card">
+              <h4>Sequences reviewed</h4>
+              <div class="detail-list">
+                ${result.sequences.map(seq => `
+                  <div class="detail-item">
+                    <strong>${escapeHtml(seq.sequence_id || 'Sequence')}</strong>
+                    <div class="detail-row"><span class="muted">Length</span><strong>${escapeHtml(formatCell(seq.length))}</strong></div>
+                    <div class="detail-row"><span class="muted">GC content</span><strong>${escapeHtml(formatCell(seq.gc_content))}</strong></div>
+                    <div class="detail-row"><span class="muted">Mutation distance</span><strong>${escapeHtml(formatCell(seq.mutation_distance_from_reference))}</strong></div>
+                    <div class="detail-row"><span class="muted">Severity</span><strong class="${seq.severity === 'HIGH' ? 'risk-high' : seq.severity === 'MODERATE' ? 'risk-moderate' : 'risk-low'}">${escapeHtml(formatCell(seq.severity))}</strong></div>
+                  </div>
+                `).join('')}
+              </div>
+            </div>
+          `);
+        }
+
+        if (Array.isArray(result.satb2_variants) && result.satb2_variants.length) {
+          sections.push(`
+            <div class="detail-card">
+              <h4>SATB2 variants</h4>
+              <div class="detail-list">
+                ${result.satb2_variants.map(variant => `
+                  <div class="detail-item">
+                    <strong>${escapeHtml(variant.chromosome || 'Variant')}</strong>
+                    <div class="detail-row"><span class="muted">Position</span><strong>${escapeHtml(formatCell(variant.position))}</strong></div>
+                    <div class="detail-row"><span class="muted">Significance</span><strong>${escapeHtml(formatCell(variant.significance))}</strong></div>
+                    <div class="detail-row"><span class="muted">CRISPRa screening</span><strong>${escapeHtml(formatCell(variant.requires_crispra_screening))}</strong></div>
+                  </div>
+                `).join('')}
+              </div>
+            </div>
+          `);
+        }
+
+        if (Array.isArray(result.crispra_candidates) && result.crispra_candidates.length) {
+          sections.push(`
+            <div class="detail-card">
+              <h4>CRISPRa candidates</h4>
+              <div class="detail-list">
+                ${result.crispra_candidates.map(candidate => `
+                  <div class="detail-item">
+                    <strong>${escapeHtml(candidate.chromosome || 'Candidate')}</strong>
+                    <div class="detail-row"><span class="muted">Position</span><strong>${escapeHtml(formatCell(candidate.position))}</strong></div>
+                    <div class="detail-row"><span class="muted">Significance</span><strong>${escapeHtml(formatCell(candidate.significance))}</strong></div>
+                  </div>
+                `).join('')}
+              </div>
+            </div>
+          `);
+        }
+
+        if (!sections.length) {
+          return `<div class="detail-card"><h4>Result summary</h4><div class="pre">${escapeHtml(JSON.stringify(result, null, 2))}</div></div>`;
+        }
+
+        return sections.join('');
       }
 
       function safeParseJson(value) {
@@ -301,11 +450,7 @@
       }
 
       function renderResult(result) {
-        if (!result) return 'Results will appear when processing completes.';
-        if (typeof result === 'object') {
-          return `<pre>${JSON.stringify(result, null, 2)}</pre>`;
-        }
-        return `<pre>${result}</pre>`;
+        return renderFriendlyResult(result);
       }
 
       form.addEventListener('submit', async (e) => {
@@ -344,7 +489,7 @@
               <div class="metric"><span>Patient</span><strong>${data.patientCode}</strong></div>
               <div class="metric"><span>Created</span><strong>${data.createdAt ? new Date(data.createdAt).toLocaleString() : '—'}</strong></div>
               <div class="metric"><span>Completed</span><strong>${data.completedAt ? new Date(data.completedAt).toLocaleString() : 'Pending'}</strong></div>
-              <div class="pre" style="margin-top:10px">${renderResult(safeParseJson(data.resultJson))}</div>
+              <div style="margin-top:10px">${renderResult(safeParseJson(data.resultJson))}</div>
             </div>
           `;
         } catch {
